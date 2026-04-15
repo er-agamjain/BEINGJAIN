@@ -36,9 +36,12 @@ class Event extends Model
     ];
 
     protected $casts = [
+<<<<<<< HEAD
         'organiser_id' => 'integer',
         'city_id' => 'integer',
         'category_id' => 'integer',
+=======
+>>>>>>> 28eb5084204bf389f4d4e74976466e14f04bbbcf
         'event_date' => 'datetime',
     ];
 
