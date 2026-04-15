@@ -1,0 +1,2 @@
+# BEINGJAIN
+Event Management app
