@@ -14,11 +14,7 @@
             <div class="flex justify-between items-center py-4">
                 <div class="flex items-center space-x-4 sm:space-x-8">
                     <a href="/" class="flex items-center">
-<<<<<<< HEAD
-                        <img src="{{ asset('/public/Being_Jain_Events_Logo.png') }}" alt="Logo" class="h-20 w-80 object-contain mr-2">
-=======
                         <img src="{{ asset('/Being_Jain_Events_Logo.png') }}" alt="Logo" class="h-20 w-80 object-contain mr-2">
->>>>>>> 28eb5084204bf389f4d4e74976466e14f04bbbcf
                     </a>
                     @auth
                         @if(auth()->user()->isAdmin())

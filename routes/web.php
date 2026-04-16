@@ -203,6 +203,7 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->grou
     Route::put('/organisers/{user}/activate', [OrganiserController::class, 'activate'])->name('organisers.activate');
     Route::put('/organisers/{user}/deactivate', [OrganiserController::class, 'deactivate'])->name('organisers.deactivate');
     Route::put('/organisers/{user}/commission', [OrganiserController::class, 'updateCommission'])->name('organisers.commission');
+    Route::delete('/organisers/{user}', [OrganiserController::class, 'destroy'])->name('organisers.destroy');
     
     // Event show/edit/update/approve/reject/delete routes (using EventController)
     Route::get('/events/{event}', [\App\Http\Controllers\Admin\EventController::class, 'show'])->name('events.show');

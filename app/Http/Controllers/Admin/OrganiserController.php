@@ -29,9 +29,13 @@ class OrganiserController extends Controller
             $query->where('is_active', $request->status === 'active' ? 1 : 0);
         }
 
-        $organisers = $query->orderBy('created_at', 'desc')->paginate(15);
+        $organisers = $query->withCount('events')->orderBy('created_at', 'desc')->paginate(15);
 
-        return view('admin.organisers', compact('organisers'));
+        $allOrganisers = User::whereHas('role', function ($q) {
+            $q->where('name', 'Organiser');
+        })->where('is_active', true)->orderBy('name')->get(['id', 'name', 'email']);
+
+        return view('admin.organisers', compact('organisers', 'allOrganisers'));
     }
 
     public function store(Request $request)
@@ -40,6 +44,7 @@ class OrganiserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
             'phone' => 'required|string',
+            'password' => 'required|string|min:8',
             'commission_rate' => 'required|numeric|min:0|max:100',
         ]);
 
@@ -49,7 +54,7 @@ class OrganiserController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'phone' => $validated['phone'],
-            'password' => Hash::make('password123'),
+            'password' => Hash::make($validated['password']),
             'role_id' => $organiserRole->id,
             'commission_rate' => $validated['commission_rate'],
             'is_active' => true,
@@ -91,5 +96,49 @@ class OrganiserController extends Controller
         $user->update(['commission_rate' => $validated['commission_rate']]);
 
         return redirect()->back()->with('success', 'Commission rate updated');
+    }
+
+    public function destroy(Request $request, User $user)
+    {
+        if (!$user->isOrganiser()) {
+            return redirect()->back()->with('error', 'User is not an organiser');
+        }
+
+        $eventsCount = $user->events()->count();
+
+        if ($eventsCount > 0) {
+            $validated = $request->validate([
+                'transfer_to' => 'required|exists:users,id',
+            ]);
+
+            $newOrganiser = User::findOrFail($validated['transfer_to']);
+
+            if (!$newOrganiser->isOrganiser()) {
+                return redirect()->back()->with('error', 'Selected user is not an organiser.');
+            }
+
+            if ((int) $newOrganiser->id === (int) $user->id) {
+                return redirect()->back()->with('error', 'Cannot transfer events to the same organiser.');
+            }
+
+            // Transfer all events owned by this organiser
+            $user->events()->update(['organiser_id' => $newOrganiser->id]);
+
+            // Transfer all venues owned by this organiser
+            \App\Models\Venue::where('organiser_id', $user->id)
+                ->update(['organiser_id' => $newOrganiser->id]);
+
+            // Transfer commission records
+            \App\Models\Commission::where('organiser_id', $user->id)
+                ->update(['organiser_id' => $newOrganiser->id]);
+        }
+
+        $user->delete();
+
+        $message = $eventsCount > 0
+            ? 'Organiser removed and ' . $eventsCount . ' event(s) transferred successfully.'
+            : 'Organiser removed successfully.';
+
+        return redirect()->route('admin.organisers.index')->with('success', $message);
     }
 }

@@ -13,11 +13,7 @@ class PaymentPolicy
      */
     private function isOrganizerOfEvent(User $user, Payment $payment): bool
     {
-<<<<<<< HEAD
         return (int) $payment->booking->event->organiser_id === (int) $user->id;
-=======
-        return $payment->booking->event->organiser_id === $user->id;
->>>>>>> 28eb5084204bf389f4d4e74976466e14f04bbbcf
     }
 
     /**
@@ -25,11 +21,7 @@ class PaymentPolicy
      */
     public function viewAny(User $user): bool
     {
-<<<<<<< HEAD
-        return $user->isOrganiser() || $user->isAdmin();
-=======
         return $user->hasRole('Organiser') || $user->hasRole('Admin');
->>>>>>> 28eb5084204bf389f4d4e74976466e14f04bbbcf
     }
 
     /**
@@ -37,11 +29,7 @@ class PaymentPolicy
      */
     public function view(User $user, Payment $payment): bool
     {
-<<<<<<< HEAD
-        return $this->isOrganizerOfEvent($user, $payment) || $user->isAdmin();
-=======
         return $this->isOrganizerOfEvent($user, $payment) || $user->hasRole('Admin');
->>>>>>> 28eb5084204bf389f4d4e74976466e14f04bbbcf
     }
 
     /**

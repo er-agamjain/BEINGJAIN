@@ -114,6 +114,14 @@
                                 <button onclick="openCommissionModal({{ $organiser->id }}, {{ $organiser->commission_rate }})" class="text-emerald-400 hover:text-emerald-300 transition-colors" title="Update Commission">
                                     <i class="fas fa-percentage text-lg"></i>
                                 </button>
+                                <button
+                                    data-id="{{ $organiser->id }}"
+                                    data-name="{{ $organiser->name }}"
+                                    data-count="{{ $organiser->events_count }}"
+                                    onclick="openRemoveModal(this.dataset.id, this.dataset.name, this.dataset.count)"
+                                    class="text-rose-400 hover:text-rose-300 transition-colors" title="Remove Organiser">
+                                    <i class="fas fa-trash text-lg"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -175,6 +183,60 @@
     </div>
 </div>
 
+<!-- Remove Organiser Modal -->
+<div id="removeOrganiserModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+    <div class="card-luxury rounded-2xl p-8 max-w-lg w-full mx-4">
+        <h3 class="text-2xl font-bold text-white mb-2">
+            <i class="fas fa-trash text-rose-400 mr-2"></i> Remove Organiser
+        </h3>
+        <p class="text-gray-400 mb-5">You are about to permanently remove <span id="removeOrganiserName" class="text-white font-bold"></span>.</p>
+
+        <!-- Events count warning -->
+        <div id="eventsCountWarning" class="hidden mb-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+            <p class="text-amber-400 text-sm font-semibold mb-1">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                This organiser has <span id="eventsCountText" class="font-bold"></span> event(s) linked to their account.
+            </p>
+            <p class="text-amber-300/80 text-xs">All events, venues, and bookings will be transferred to the organiser you select below.</p>
+        </div>
+
+        <!-- No events note -->
+        <div id="noEventsNote" class="hidden mb-4 p-3 bg-slate-700/50 border border-slate-600 rounded-xl">
+            <p class="text-gray-400 text-sm">
+                <i class="fas fa-info-circle text-blue-400 mr-2"></i> This organiser has no events. They will be permanently removed.
+            </p>
+        </div>
+
+        <form id="removeOrganiserForm" method="POST">
+            @csrf
+            @method('DELETE')
+
+            <!-- Transfer dropdown -->
+            <div id="transferSection" class="hidden mb-6">
+                <label class="block text-gray-300 font-bold mb-2">
+                    <i class="fas fa-exchange-alt text-emerald-400 mr-1"></i> Transfer All Events To
+                </label>
+                <select id="transfer_to" name="transfer_to" class="w-full px-4 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="">— Select Replacement Organiser —</option>
+                    @foreach($allOrganisers as $opt)
+                        <option value="{{ $opt->id }}" data-id="{{ $opt->id }}">{{ $opt->name }} ({{ $opt->email }})</option>
+                    @endforeach
+                </select>
+                <p class="text-xs text-gray-500 mt-1">Events, venues, and commission records will be reassigned to this organiser.</p>
+            </div>
+
+            <div class="flex space-x-3">
+                <button type="submit" class="flex-1 px-6 py-2 bg-gradient-to-r from-rose-600 to-red-600 hover:shadow-lg hover:shadow-rose-500/20 text-white font-medium rounded-lg transition-all">
+                    <i class="fas fa-trash mr-2"></i> Remove Organiser
+                </button>
+                <button type="button" onclick="document.getElementById('removeOrganiserModal').classList.add('hidden')" class="flex-1 px-6 py-2 bg-slate-700 hover:bg-slate-600 text-gray-300 border border-slate-600 font-medium rounded-lg transition-all">
+                    <i class="fas fa-times mr-2"></i> Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- Commission Modal -->
 <div id="commissionModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
     <div class="card-luxury rounded-2xl p-8 max-w-md w-full mx-4">
@@ -203,6 +265,39 @@ function openCommissionModal(organiserId, currentRate) {
     document.getElementById('commission_rate_input').value = currentRate;
     document.getElementById('commissionForm').action = `/admin/organisers/${organiserId}/commission`;
     document.getElementById('commissionModal').classList.remove('hidden');
+}
+
+function openRemoveModal(organiserId, organiserName, eventsCount) {
+    eventsCount = parseInt(eventsCount, 10) || 0;
+    document.getElementById('removeOrganiserName').textContent = organiserName;
+    document.getElementById('removeOrganiserForm').action = `/admin/organisers/${organiserId}`;
+
+    const transferSection = document.getElementById('transferSection');
+    const transferSelect  = document.getElementById('transfer_to');
+    const eventsWarning   = document.getElementById('eventsCountWarning');
+    const noEventsNote    = document.getElementById('noEventsNote');
+
+    // Hide the current organiser from the transfer dropdown
+    Array.from(transferSelect.options).forEach(option => {
+        option.hidden = (option.value == organiserId);
+    });
+    // Reset selection
+    transferSelect.value = '';
+
+    if (eventsCount > 0) {
+        document.getElementById('eventsCountText').textContent = eventsCount;
+        eventsWarning.classList.remove('hidden');
+        noEventsNote.classList.add('hidden');
+        transferSection.classList.remove('hidden');
+        transferSelect.required = true;
+    } else {
+        eventsWarning.classList.add('hidden');
+        noEventsNote.classList.remove('hidden');
+        transferSection.classList.add('hidden');
+        transferSelect.required = false;
+    }
+
+    document.getElementById('removeOrganiserModal').classList.remove('hidden');
 }
 </script>
 
