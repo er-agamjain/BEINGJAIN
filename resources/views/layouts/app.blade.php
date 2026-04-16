@@ -31,6 +31,9 @@
                                 <a href="{{ route('admin.events.index') }}" class="nav-link-luxury {{ request()->routeIs('admin.events.*') ? 'active' : '' }}">
                                     <i class="fas fa-calendar-alt"></i> Events
                                 </a>
+                                <a href="{{ route('admin.venues.index') }}" class="nav-link-luxury {{ request()->routeIs('admin.venues.*') || request()->routeIs('admin.seat-categories.*') ? 'active' : '' }}">
+                                    <i class="fas fa-building"></i> Venues
+                                </a>
                                 <a href="{{ route('admin.event-categories.index') }}" class="nav-link-luxury {{ request()->routeIs('admin.event-categories.*') ? 'active' : '' }}">
                                     <i class="fas fa-tags"></i> Categories
                                 </a>
@@ -136,6 +139,9 @@
                         </a>
                         <a href="{{ route('admin.events.index') }}" class="nav-link-mobile {{ request()->routeIs('admin.events.*') ? 'active' : '' }}">
                             <i class="fas fa-calendar-alt w-6"></i> Events
+                        </a>
+                        <a href="{{ route('admin.venues.index') }}" class="nav-link-mobile {{ request()->routeIs('admin.venues.*') || request()->routeIs('admin.seat-categories.*') ? 'active' : '' }}">
+                            <i class="fas fa-building w-6"></i> Venues
                         </a>
                         <a href="{{ route('admin.event-categories.index') }}" class="nav-link-mobile {{ request()->routeIs('admin.event-categories.*') ? 'active' : '' }}">
                             <i class="fas fa-tags w-6"></i> Categories

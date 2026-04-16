@@ -85,7 +85,12 @@
                                     <div class="text-white">{{ $timing->show_date_time->format('M d, Y') }}</div>
                                     <div class="text-sm text-gray-400">{{ $timing->show_date_time->format('h:i A') }}</div>
                                 </td>
-                                <td class="px-6 py-4 text-gray-300">{{ $timing->available_seats }}</td>
+                                    <td class="px-6 py-4 text-gray-300">
+                                        {{ $timing->available_seats }}
+                                        @if($timing->tickets_count > 0)
+                                            <span class="ml-1 text-xs text-amber-400 font-semibold">({{ $timing->tickets_count }} cat.)</span>
+                                        @endif
+                                    </td>
                                 <td class="px-6 py-4 text-gray-300">{{ $timing->duration_minutes }} min</td>
                                 <td class="px-6 py-4">
                                     <span class="px-3 py-1 rounded-full text-sm font-semibold

@@ -91,7 +91,7 @@ class EventController extends Controller
             abort(403);
         }
 
-        $event->load(['tickets', 'showTimings', 'city']);
+            $event->load(['showTimings.tickets', 'showTimings.venue', 'city']);
         $categories  = \App\Models\EventCategory::where('is_active', true)->pluck('category_name', 'id');
         $communities = EventCommunity::where('is_active', true)->pluck('name');
         $gacchhs     = EventGacchh::where('is_active', true)->pluck('name');

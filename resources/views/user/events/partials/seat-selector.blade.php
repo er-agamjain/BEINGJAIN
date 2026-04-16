@@ -42,7 +42,7 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <div class="w-4 h-4 rounded bg-slate-600"></div>
-                    <span>Booked</span>
+                    <span>Booked / Unavailable</span>
                 </div>
                 <div class="flex items-center gap-2">
                     <div class="w-4 h-4 rounded bg-emerald-500 border-2 border-amber-400"></div>
@@ -53,9 +53,11 @@
     </div>
 
     <!-- Category Price Info -->
-    <div id="categoryPrices" class="hidden">
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
-            <!-- Dynamically loaded -->
+    <div id="categoryPrices" class="hidden space-y-3">
+        <div id="seatCapacityInfo" class="rounded-xl bg-slate-900/60 border border-white/10 p-2.5 text-xs text-slate-200"></div>
+        <div id="bookingNotAllowedMessage" class="hidden rounded-xl border border-red-400/30 bg-red-500/10 text-red-100 p-3 text-sm"></div>
+        <div id="ticketRangesGrid" class="flex gap-2.5 overflow-x-auto pb-1 snap-x snap-mandatory">
+            <!-- Dynamically loaded ticket ranges -->
         </div>
     </div>
 
@@ -177,6 +179,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const seatMapContainer = document.getElementById('seatMapContainer');
     const seatGrid = document.getElementById('seatGrid');
     const categoryPrices = document.getElementById('categoryPrices');
+    const seatCapacityInfo = document.getElementById('seatCapacityInfo');
+    const bookingNotAllowedMessage = document.getElementById('bookingNotAllowedMessage');
+    const ticketRangesGrid = document.getElementById('ticketRangesGrid');
     const selectedSeatsSummary = document.getElementById('selectedSeatsSummary');
     const selectedSeatsList = document.getElementById('selectedSeatsList');
     const noShowTimingMessage = document.getElementById('noShowTimingMessage');
@@ -184,9 +189,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const showTimingIdInput = document.getElementById('showTimingIdInput');
     const totalPriceSpan = document.getElementById('totalPrice');
     const clearSeatsBtn = document.getElementById('clearSeatsBtn');
+    const submitBookingBtn = bookingForm.querySelector('button[type="submit"]');
 
     let selectedSeats = new Map(); // Map of seatId -> {id, number, row, category, price}
-    let currentSeatsData = [];
 
     showTimingSelect.addEventListener('change', async function() {
         const showTimingId = this.value;
@@ -198,14 +203,13 @@ document.addEventListener('DOMContentLoaded', function() {
             noShowTimingMessage.classList.remove('hidden');
             selectedSeats.clear();
             updateSummary();
+            submitBookingBtn.disabled = false;
             return;
         }
 
         try {
             const response = await fetch(`/user/show-timings/${showTimingId}/seats`);
             const data = await response.json();
-
-            currentSeatsData = data.seats;
             
             // Update form action and show timing ID
             const eventId = '{{ $event->id }}';
@@ -216,15 +220,16 @@ document.addEventListener('DOMContentLoaded', function() {
             selectedSeats.clear();
 
             // Render seat map
-            renderSeatMap(data.seats, data.categories);
+            renderSeatMap(data.seats);
 
-            // Render category prices
-            renderCategoryPrices(data.categories);
+            // Render ticket ranges and booking state
+            renderTicketRanges(data);
 
             // Show/hide elements
             seatMapContainer.classList.remove('hidden');
             categoryPrices.classList.remove('hidden');
             noShowTimingMessage.classList.add('hidden');
+            submitBookingBtn.disabled = !data.booking_allowed;
             updateSummary();
         } catch (error) {
             console.error('Error fetching seats:', error);
@@ -232,24 +237,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    function renderSeatMap(seatsData, categories) {
+    function renderSeatMap(seatsData) {
         seatGrid.innerHTML = '';
 
         // Group seats by row
         const seatsByRow = new Map();
-        
-        seatsData.forEach(category => {
-            category.seats.forEach(seat => {
-                if (!seatsByRow.has(seat.row)) {
-                    seatsByRow.set(seat.row, []);
-                }
-                seatsByRow.get(seat.row).push({
-                    ...seat,
-                    category_id: category.category_id,
-                    category_name: category.category_name,
-                    category_color: category.category_color
-                });
-            });
+
+        seatsData.forEach(seat => {
+            if (!seatsByRow.has(seat.row)) {
+                seatsByRow.set(seat.row, []);
+            }
+            seatsByRow.get(seat.row).push(seat);
         });
 
         // Sort rows and render
@@ -273,27 +271,28 @@ document.addEventListener('DOMContentLoaded', function() {
             rowSeats.forEach(seat => {
                 const seatBtn = document.createElement('button');
                 seatBtn.type = 'button';
-                    const isAvailable = seat.status === 'available';
-                    const statusClass = isAvailable ? 'seat-available' : 'seat-booked';
-                    seatBtn.className = `seat-btn ${statusClass}`;
+                const isAvailable = seat.status === 'available' && !!seat.ticket_name;
+                const statusClass = isAvailable ? 'seat-available' : 'seat-booked';
+                seatBtn.className = `seat-btn ${statusClass}`;
                 seatBtn.textContent = seat.column;
-                seatBtn.title = `${seat.category_name} - ₹${Math.round(seat.price)} (${seat.status})`;
+                const ticketLabel = seat.ticket_name || 'Unavailable';
+                seatBtn.title = `${ticketLabel} - ₹${Math.round(seat.price || 0)} (${seat.status})`;
                 seatBtn.dataset.seatId = seat.id;
                 seatBtn.dataset.seatNumber = seat.seat_number;
-                seatBtn.dataset.categoryName = seat.category_name;
+                seatBtn.dataset.categoryName = ticketLabel;
                 seatBtn.dataset.price = seat.price;
                 seatBtn.dataset.row = row;
                 seatBtn.dataset.rowLabel = rowLetter;
                 seatBtn.dataset.column = seat.column;
 
-                    if (isAvailable) {
-                        seatBtn.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            toggleSeat(seatBtn);
-                        });
-                    } else {
-                        seatBtn.disabled = true;
-                    }
+                if (isAvailable) {
+                    seatBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        toggleSeat(seatBtn);
+                    });
+                } else {
+                    seatBtn.disabled = true;
+                }
 
                 rowDiv.appendChild(seatBtn);
             });
@@ -302,22 +301,66 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function renderCategoryPrices(categories) {
-        // Target the inner grid div, not the outer wrapper
-        const grid = categoryPrices.querySelector('div');
-        grid.innerHTML = '';
+    function renderTicketRanges(data) {
+        const totalSeats = Number(data.total_seats || 0);
+        const allocatableSeats = Number(data.allocatable_seats || 0);
+        const seatsPerRow = 12;
 
-        categories.forEach(category => {
-            const priceDiv = document.createElement('div');
-            priceDiv.className = 'rounded-lg bg-slate-900/60 border border-white/10 p-3 flex items-center justify-between gap-2';
-            priceDiv.innerHTML = `
-                <div class="flex items-center gap-2 min-w-0">
-                    <span class="w-3 h-3 rounded flex-shrink-0" style="background-color: ${category.color}60;"></span>
-                    <span class="text-xs sm:text-sm truncate">${category.name}</span>
-                </div>
-                <span class="font-semibold text-amber-300 text-sm flex-shrink-0">₹${Math.round(category.base_price)}</span>
+        function rowNumberToLabel(rowNumber) {
+            let n = Number(rowNumber);
+            let label = '';
+
+            while (n > 0) {
+                const remainder = (n - 1) % 26;
+                label = String.fromCharCode(65 + remainder) + label;
+                n = Math.floor((n - 1) / 26);
+            }
+
+            return label || 'A';
+        }
+
+        function seatNumberToCoordinate(seatNumber) {
+            const n = Number(seatNumber);
+            if (!n || n < 1) {
+                return '--';
+            }
+
+            const rowNumber = Math.floor((n - 1) / seatsPerRow) + 1;
+            const columnNumber = ((n - 1) % seatsPerRow) + 1;
+
+            return `${rowNumberToLabel(rowNumber)}${columnNumber}`;
+        }
+
+        seatCapacityInfo.innerHTML = `
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="px-2 py-1 rounded-lg bg-slate-800 border border-white/10"><strong>Total:</strong> ${totalSeats}</span>
+                <span class="px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-400/20 text-emerald-200"><strong>Bookable:</strong> ${allocatableSeats}</span>
+                <span class="px-2 py-1 rounded-lg bg-amber-500/10 border border-amber-400/20 text-amber-200"><strong>Blocked:</strong> ${Math.max(0, totalSeats - allocatableSeats)}</span>
+            </div>
+        `;
+
+        ticketRangesGrid.innerHTML = '';
+
+        if (!data.booking_allowed) {
+            bookingNotAllowedMessage.classList.remove('hidden');
+            bookingNotAllowedMessage.textContent = data.message || 'Currently booking not allowed.';
+            return;
+        }
+
+        bookingNotAllowedMessage.classList.add('hidden');
+
+        (data.ticket_ranges || []).forEach(range => {
+            const startCoordinate = seatNumberToCoordinate(range.from);
+            const endCoordinate = seatNumberToCoordinate(range.to);
+
+            const rangeDiv = document.createElement('div');
+            rangeDiv.className = 'min-w-[190px] max-w-[230px] shrink-0 snap-start rounded-xl bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-white/10 p-2.5 shadow-md';
+            rangeDiv.innerHTML = `
+                <p class="font-semibold text-white text-sm truncate" title="${range.name}">${range.name}</p>
+                <p class="text-amber-300 font-semibold text-sm">₹${Math.round(range.price)}</p>
+                <p class="text-slate-300 text-xs mt-1">${range.from}-${range.to} <span class="text-slate-500">||</span> ${startCoordinate}-${endCoordinate}</p>
             `;
-            grid.appendChild(priceDiv);
+            ticketRangesGrid.appendChild(rangeDiv);
         });
     }
 
@@ -401,6 +444,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Prevent form submission if no seats selected
     bookingForm.addEventListener('submit', function(e) {
+        if (submitBookingBtn.disabled) {
+            e.preventDefault();
+            alert('Currently booking not allowed for this show timing.');
+            return false;
+        }
+
         if (selectedSeats.size === 0) {
             e.preventDefault();
             alert('Please select at least one seat');

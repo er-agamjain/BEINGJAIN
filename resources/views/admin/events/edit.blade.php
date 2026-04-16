@@ -5,19 +5,18 @@
 @section('content')
 <div class="py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Header -->
         <div class="mb-8 flex items-center justify-between">
             <div>
                 <h1 class="text-4xl font-bold text-white mb-2" style="font-family: 'Playfair Display', serif;">
                     <i class="fas fa-edit text-amber-400"></i> Edit Event
                 </h1>
-                <p class="text-gray-400">Editing: {{ $event->title }}</p>
+                <p class="text-gray-400">Editing: {{ $event->title }} @if($event->organiser)<span class="text-gray-500">| Owner: {{ $event->organiser->name }}</span>@endif</p>
             </div>
             <div class="flex gap-3">
                 <a href="{{ route('admin.events.show', $event) }}" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition">
                     <i class="fas fa-eye mr-2"></i>View
                 </a>
-                <a href="{{ route('admin.events.index') }}" class="px-5 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition">
+                <a href="{{ route('admin.events.index', $event) }}" class="px-5 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition">
                     <i class="fas fa-arrow-left mr-2"></i>Back
                 </a>
             </div>
@@ -40,9 +39,8 @@
         @endif
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Edit Form -->
             <div class="lg:col-span-2">
-                <div class="card-luxury rounded-lg p-8">
+                <div class="card-luxury rounded-xl p-8">
                     <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
                         <i class="fas fa-info-circle text-amber-400"></i> Event Details
                     </h2>
@@ -53,16 +51,14 @@
 
                         <div>
                             <label class="block text-amber-400 font-bold mb-2">Event Title <span class="text-red-400">*</span></label>
-                            <input type="text" name="title" value="{{ old('title', $event->title) }}"
-                                class="w-full px-4 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required>
+                            <input type="text" name="title" value="{{ old('title', $event->title) }}" class="w-full px-4 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required>
                         </div>
 
                         <div>
                             <label class="block text-amber-400 font-bold mb-2">Description <span class="text-red-400">*</span></label>
-                            <textarea name="description" rows="4"
-                                class="w-full px-4 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required>{{ old('description', $event->description) }}</textarea>
+                            <textarea name="description" rows="4" class="w-full px-4 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required>{{ old('description', $event->description) }}</textarea>
                         </div>
-                        
+
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-amber-400 font-bold mb-2">City</label>
@@ -74,19 +70,10 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-amber-400 font-bold mb-2">Navigation Location
-                                    <span class="text-gray-400 font-normal text-xs">(Google Maps link)</span>
-                                </label>
-                                <input type="url" name="navigation_location" value="{{ old('navigation_location', $event->navigation_location) }}" placeholder="https://maps.google.com/..."
-                                    class="w-full px-4 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
+                                <label class="block text-amber-400 font-bold mb-2">Navigation Location <span class="text-gray-400 font-normal text-xs">(Google Maps link)</span></label>
+                                <input type="url" name="navigation_location" value="{{ old('navigation_location', $event->navigation_location) }}" placeholder="https://maps.google.com/..." class="w-full px-4 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
                             </div>
                         </div>
-
-                        <!--<div>
-                            <label class="block text-amber-400 font-bold mb-2">Location <span class="text-red-400">*</span></label>
-                            <input type="text" name="location" value="{{ old('location', $event->location) }}"
-                                class="w-full px-4 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required>
-                        </div>-->
 
                         <div>
                             <label class="block text-amber-400 font-bold mb-2">Event Category</label>
@@ -127,31 +114,29 @@
                                 </select>
                             </div>
                         </div>
-                        
+
                         <div class="flex items-center gap-3">
-                            <input type="checkbox" id="allDayEvent" name="all_day" value="1" {{ old('all_day', $event->all_day ?? false) ? 'checked' : '' }} class="w-4 h-4 rounded border-slate-600 bg-slate-700 text-emerald-500 focus:ring-emerald-500 cursor-pointer">
+                            <input type="hidden" name="all_day" value="0">
+                            <input type="checkbox" id="allDayEvent" name="all_day" value="1" {{ old('all_day', $event->all_day) ? 'checked' : '' }} class="w-4 h-4 rounded border-slate-600 bg-slate-700 text-emerald-500 focus:ring-emerald-500 cursor-pointer">
                             <label for="allDayEvent" class="text-amber-400 font-bold cursor-pointer select-none">All Day Event</label>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-amber-400 font-bold mb-2">Event Date <span class="text-red-400">*</span></label>
-                                <input type="date" name="event_date" value="{{ old('event_date', \Carbon\Carbon::parse($event->event_date)->format('Y-m-d')) }}"
-                                    class="w-full px-4 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required>
+                                <input type="date" name="event_date" value="{{ old('event_date', $event->event_date?->format('Y-m-d')) }}" class="w-full px-4 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required>
                             </div>
                             <div id="startTimeDiv">
                                 <label class="block text-amber-400 font-bold mb-2">Start Time <span class="text-red-400" id="startTimeRequired">*</span></label>
                                 <div class="flex gap-2 items-center">
-                                    <input type="time" name="start_time" id="startTime" value="{{ old('start_time', \Carbon\Carbon::parse($event->start_time)->format('H:i')) }}"
-                                        class="w-full px-4 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required>
+                                    <input type="time" name="start_time" id="startTime" value="{{ old('start_time', substr($event->start_time ?? '', 0, 5)) }}" class="w-full px-4 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required>
                                     <span id="startTimeDisplay" class="text-gray-400 font-semibold min-w-16 text-center">--:-- --</span>
                                 </div>
                             </div>
                             <div id="endTimeDiv">
                                 <label class="block text-amber-400 font-bold mb-2">End Time <span class="text-red-400" id="endTimeRequired">*</span></label>
                                 <div class="flex gap-2 items-center">
-                                    <input type="time" name="end_time" id="endTime" value="{{ old('end_time', \Carbon\Carbon::parse($event->end_time)->format('H:i')) }}"
-                                        class="w-full px-4 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required>
+                                    <input type="time" name="end_time" id="endTime" value="{{ old('end_time', substr($event->end_time ?? '', 0, 5)) }}" class="w-full px-4 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required>
                                     <span id="endTimeDisplay" class="text-gray-400 font-semibold min-w-16 text-center">--:-- --</span>
                                 </div>
                             </div>
@@ -161,11 +146,11 @@
                             <label class="block text-amber-400 font-bold mb-2">Event Type <span class="text-red-400">*</span></label>
                             <div class="flex gap-6">
                                 <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="is_free" value="0" {{ old('is_free', $event->is_free) == '0' ? 'checked' : '' }} class="w-4 h-4 text-amber-400">
+                                    <input type="radio" name="is_free" value="0" {{ old('is_free', $event->is_free ? '1' : '0') == '0' ? 'checked' : '' }} class="w-4 h-4 text-amber-400">
                                     <span class="text-white">Paid Event</span>
                                 </label>
                                 <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="is_free" value="1" {{ old('is_free', $event->is_free) == '1' ? 'checked' : '' }} class="w-4 h-4 text-amber-400">
+                                    <input type="radio" name="is_free" value="1" {{ old('is_free', $event->is_free ? '1' : '0') == '1' ? 'checked' : '' }} class="w-4 h-4 text-amber-400">
                                     <span class="text-white">Free Event</span>
                                 </label>
                             </div>
@@ -173,10 +158,7 @@
 
                         <div id="priceDiv" class="{{ $event->is_free ? 'opacity-60' : '' }}">
                             <label class="block text-amber-400 font-bold mb-2">Base Price <span id="priceRequired" class="text-red-400 {{ $event->is_free ? 'hidden' : '' }}">*</span></label>
-                            <input type="number" name="base_price" step="0.01" min="0" id="basePrice"
-                                value="{{ old('base_price', $event->base_price) }}"
-                                {{ $event->is_free ? 'disabled' : '' }}
-                                class="w-full md:w-1/2 px-4 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
+                            <input type="number" name="base_price" step="0.01" min="0" id="basePrice" value="{{ old('base_price', $event->base_price) }}" {{ $event->is_free ? 'disabled' : '' }} class="w-full md:w-1/2 px-4 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
                         </div>
 
                         <div>
@@ -184,7 +166,7 @@
                             @if($event->image)
                                 <div class="mb-3">
                                     <img src="{{ asset('storage/' . $event->image) }}" alt="Current image" class="h-32 w-32 object-cover rounded-lg border border-slate-600">
-                                    <p class="text-gray-400 text-xs mt-1">Current image — upload a new one to replace</p>
+                                    <p class="text-gray-400 text-xs mt-1">Current image - upload a new one to replace</p>
                                 </div>
                             @endif
                             <input type="file" name="image" class="w-full px-4 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" accept="image/*">
@@ -202,149 +184,205 @@
                 </div>
             </div>
 
-            <!-- Tickets / Seats -->
-            <div>
-                <div class="card-luxury rounded-lg p-6">
-                    <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                        <i class="fas fa-ticket-alt text-amber-400"></i> Tickets / Seats
-                    </h2>
-
-                    <!-- Existing Tickets -->
-                    @if($event->tickets->isNotEmpty())
-                        <div class="space-y-2 mb-6">
-                            @foreach($event->tickets as $ticket)
-                                <div class="flex items-center justify-between bg-slate-700/60 rounded-lg px-4 py-3">
-                                    <div>
-                                        <p class="text-white font-semibold">{{ $ticket->name }}</p>
-                                        <p class="text-gray-400 text-xs">
-                                            {{ $ticket->ticket_type === 'free' ? 'Free' : '₹' . number_format($ticket->price, 2) }}
-                                            &bull; {{ $ticket->getAvailableQuantity() }}/{{ $ticket->quantity }} available
-                                        </p>
-                                    </div>
-                                    <form action="{{ route('admin.events.tickets.destroy', $ticket) }}" method="POST">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" onclick="return confirm('Delete this ticket?')"
-                                            class="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition">
-                                            <i class="fas fa-trash text-sm"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <p class="text-gray-400 text-sm mb-6">No tickets yet.</p>
-                    @endif
-
-                    <!-- Add Ticket Form -->
-                    <div class="border-t border-slate-600 pt-5">
-                        <h3 class="text-amber-400 font-semibold mb-3">Add New Ticket</h3>
-                        <form action="{{ route('admin.events.tickets.store', $event) }}" method="POST" class="space-y-3">
-                            @csrf
-                            <div>
-                                <label class="block text-gray-300 text-sm mb-1">Ticket Name <span class="text-red-400">*</span></label>
-                                <input type="text" name="name" placeholder="e.g. General Admission"
-                                    class="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required>
-                            </div>
-                            <div>
-                                <label class="block text-gray-300 text-sm mb-1">Description</label>
-                                <input type="text" name="description" placeholder="Optional description"
-                                    class="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-gray-300 text-sm mb-1">Type <span class="text-red-400">*</span></label>
-                                    <select name="ticket_type" id="ticketType"
-                                        class="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required>
-                                        <option value="paid">Paid</option>
-                                        <option value="free">Free</option>
-                                    </select>
-                                </div>
-                                <div id="ticketPriceDiv">
-                                    <label class="block text-gray-300 text-sm mb-1">Price (₹) <span class="text-red-400">*</span></label>
-                                    <input type="number" name="price" step="0.01" min="0" id="ticketPrice" placeholder="0.00"
-                                        class="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-gray-300 text-sm mb-1">Quantity <span class="text-red-400">*</span></label>
-                                <input type="number" name="quantity" min="1" placeholder="Number of seats"
-                                    class="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required>
-                            </div>
-                            <button type="submit" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-semibold transition mt-2">
-                                <i class="fas fa-plus mr-1"></i> Add Ticket
-                            </button>
-                        </form>
+            <div class="lg:col-span-2">
+                <div class="card-luxury rounded-xl p-7 lg:p-8">
+                    <div class="mb-7 pb-5 border-b border-slate-600/60">
+                        <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                            <i class="fas fa-clock text-amber-400"></i> Show Timings & Ticket Categories
+                        </h2>
+                        <p class="text-sm text-gray-400 mt-1">Admin can manage any event timing, venue, and ticket allocation from here.</p>
                     </div>
-                </div>
-            </div>
 
-            <!-- Show Timings -->
-            <div>
-                <div class="card-luxury rounded-lg p-6">
-                    <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                        <i class="fas fa-clock text-amber-400"></i> Show Timings
-                    </h2>
-
-                    <!-- Existing Timings -->
                     @if($event->showTimings->isNotEmpty())
-                        <div class="space-y-2 mb-6">
+                        <div class="space-y-6 mb-8">
                             @foreach($event->showTimings as $timing)
-                                <div class="flex items-center justify-between bg-slate-700/60 rounded-lg px-4 py-3">
-                                    <div>
-                                        <p class="text-white font-semibold">
-                                            {{ \Carbon\Carbon::parse($timing->show_date_time)->format('M d, Y') }}
-                                            <span class="text-amber-400 ml-1">{{ \Carbon\Carbon::parse($timing->show_date_time)->format('h:i A') }}</span>
-                                        </p>
-                                        <p class="text-gray-400 text-xs">
-                                            {{ $timing->duration_minutes }} min
-                                            &bull; {{ $timing->available_seats }} seats
-                                            @if($timing->notes) &bull; {{ $timing->notes }} @endif
-                                        </p>
+                                @php
+                                    $usedSeats = $timing->tickets->sum('quantity');
+                                    $freeSeats = max(0, $timing->available_seats - $usedSeats);
+                                    $pct = $timing->available_seats > 0 ? min(100, round(($usedSeats / $timing->available_seats) * 100)) : 0;
+                                @endphp
+
+                                <div class="rounded-2xl border border-slate-600/60 bg-slate-800/45 overflow-hidden">
+                                    <div class="flex flex-wrap items-start justify-between gap-4 px-6 py-5 bg-slate-700/60 border-b border-slate-600/50">
+                                        <div>
+                                            <p class="text-white font-bold text-base sm:text-lg">
+                                                <i class="fas fa-calendar-alt text-emerald-400 mr-1"></i>
+                                                {{ \Carbon\Carbon::parse($timing->show_date_time)->format('D, M d Y') }}
+                                                <span class="text-amber-400 ml-2">{{ \Carbon\Carbon::parse($timing->show_date_time)->format('h:i A') }}</span>
+                                            </p>
+                                            <p class="text-gray-400 text-sm mt-1">
+                                                <i class="fas fa-map-marker-alt mr-1"></i>{{ $timing->venue->name ?? '-' }}
+                                                <span class="mx-2">|</span>{{ $timing->duration_minutes }} min
+                                                <span class="mx-2">|</span>
+                                                <span class="{{ $freeSeats <= 0 ? 'text-red-400' : 'text-emerald-400' }} font-semibold">{{ $usedSeats }}/{{ $timing->available_seats }} seats allocated</span>
+                                                @if($timing->notes)
+                                                    <span class="mx-2">|</span>{{ $timing->notes }}
+                                                @endif
+                                            </p>
+                                        </div>
+
+                                        <div class="flex items-center gap-2">
+                                            <span class="px-3 py-1 rounded-full text-xs font-semibold {{ $timing->status === 'scheduled' ? 'bg-blue-500/20 text-blue-200 border border-blue-500/30' : '' }} {{ $timing->status === 'cancelled' ? 'bg-red-500/20 text-red-200 border border-red-500/30' : '' }} {{ $timing->status === 'completed' ? 'bg-green-500/20 text-green-200 border border-green-500/30' : '' }}">
+                                                {{ ucfirst($timing->status) }}
+                                            </span>
+                                            <a href="{{ route('admin.show-timings.edit', $timing) }}" class="p-2 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 rounded-lg transition" title="Edit timing">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form action="{{ route('admin.events.timings.destroy', $timing) }}" method="POST" class="inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" onclick="return confirm('Delete this show timing and all its tickets?')" class="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition" title="Delete timing">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
-                                    <form action="{{ route('admin.events.timings.destroy', $timing) }}" method="POST">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" onclick="return confirm('Delete this timing?')"
-                                            class="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition">
-                                            <i class="fas fa-trash text-sm"></i>
-                                        </button>
-                                    </form>
+
+                                    <div class="px-6 py-6">
+                                        <div class="mb-5">
+                                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                                <span>Allocated: {{ $usedSeats }}</span>
+                                                <span>Capacity: {{ $timing->available_seats }}</span>
+                                            </div>
+                                            <div class="w-full bg-slate-700 rounded-full h-2">
+                                                <div class="h-2 rounded-full transition-all {{ $pct >= 100 ? 'bg-red-500' : ($pct >= 80 ? 'bg-amber-400' : 'bg-emerald-500') }} js-capacity-bar" data-progress="{{ $pct }}"></div>
+                                            </div>
+                                        </div>
+
+                                        @if($timing->tickets->isNotEmpty())
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 mb-5">
+                                                @foreach($timing->tickets as $ticket)
+                                                    @php
+                                                        $maxForThisTicket = max(1, $freeSeats + $ticket->quantity);
+                                                    @endphp
+                                                    <div class="bg-slate-700/45 border border-slate-600/40 rounded-xl p-4 flex flex-col justify-between gap-3">
+                                                        <div>
+                                                            <p class="text-white font-semibold leading-tight">{{ $ticket->name }}</p>
+                                                            <p class="text-xs text-gray-400 mt-1">
+                                                                {{ $ticket->ticket_type === 'free' ? 'Free' : '₹'.number_format($ticket->price, 2) }}
+                                                                <span class="mx-1">|</span>Qty: {{ $ticket->quantity }}
+                                                                <span class="mx-1">|</span>Sold: {{ $ticket->quantity_sold }}
+                                                            </p>
+                                                            @if($ticket->description)
+                                                                <p class="text-xs text-slate-300 mt-2">{{ $ticket->description }}</p>
+                                                            @endif
+                                                        </div>
+                                                        <div class="flex items-center justify-end gap-2">
+                                                            <button type="button" class="js-open-ticket-modal p-2 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 rounded-lg transition" title="Edit ticket" data-action="{{ route('admin.show-timings.tickets.update', [$timing, $ticket]) }}" data-name="{{ $ticket->name }}" data-description="{{ $ticket->description }}" data-ticket-type="{{ $ticket->ticket_type }}" data-price="{{ $ticket->price }}" data-quantity="{{ $ticket->quantity }}" data-min="{{ max(1, $ticket->quantity_sold) }}" data-max="{{ $maxForThisTicket }}">
+                                                                <i class="fas fa-pen"></i>
+                                                            </button>
+                                                            <form action="{{ route('admin.show-timings.tickets.destroy', [$timing, $ticket]) }}" method="POST">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit" onclick="return confirm('Remove this ticket category?')" class="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition" title="Delete ticket">
+                                                                    <i class="fas fa-trash"></i>
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <p class="text-sm text-gray-400 italic mb-5">No ticket categories added for this timing.</p>
+                                        @endif
+
+                                        @if($freeSeats > 0)
+                                            <div class="border-t border-slate-600/50 pt-5">
+                                                <button type="button" class="js-toggle-ticket-form flex items-center gap-2 text-emerald-400 hover:text-emerald-300 text-sm font-semibold transition" data-target="ticket-form-{{ $timing->id }}">
+                                                    <i class="fas fa-plus-circle"></i>
+                                                    <span>{{ session('timing_error_id') == $timing->id ? 'Cancel' : 'Add Ticket Category' }}</span>
+                                                </button>
+
+                                                <div id="ticket-form-{{ $timing->id }}" class="{{ session('timing_error_id') == $timing->id ? '' : 'hidden' }} mt-4 border border-slate-600/60 rounded-xl p-4 bg-slate-900/40">
+                                                    @if(session('timing_error_id') == $timing->id)
+                                                        <div class="mb-3 p-2 bg-red-500/10 border border-red-500/30 rounded text-red-300 text-xs">
+                                                            @foreach($errors->get('quantity') as $err)
+                                                                {{ $err }}
+                                                            @endforeach
+                                                        </div>
+                                                    @endif
+
+                                                    <form action="{{ route('admin.show-timings.tickets.store', $timing) }}" method="POST" class="space-y-3">
+                                                        @csrf
+                                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                            <div>
+                                                                <label class="block text-gray-300 text-xs mb-1">Category Name <span class="text-red-400">*</span></label>
+                                                                <input type="text" name="name" placeholder="e.g. Gold, Silver, General" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" required>
+                                                            </div>
+                                                            <div>
+                                                                <label class="block text-gray-300 text-xs mb-1">Description</label>
+                                                                <input type="text" name="description" placeholder="Optional" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                                            </div>
+                                                        </div>
+                                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                                            <div>
+                                                                <label class="block text-gray-300 text-xs mb-1">Type <span class="text-red-400">*</span></label>
+                                                                <select name="ticket_type" class="js-ticket-type-select w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" data-price-wrap="tprice-wrap-{{ $timing->id }}" data-price-input="tprice-{{ $timing->id }}" required>
+                                                                    <option value="paid">Paid</option>
+                                                                    <option value="free">Free</option>
+                                                                </select>
+                                                            </div>
+                                                            <div id="tprice-wrap-{{ $timing->id }}">
+                                                                <label class="block text-gray-300 text-xs mb-1">Price (₹)</label>
+                                                                <input type="number" name="price" id="tprice-{{ $timing->id }}" step="0.01" min="0" placeholder="0.00" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                                            </div>
+                                                            <div>
+                                                                <label class="block text-gray-300 text-xs mb-1">Quantity (max {{ $freeSeats }}) <span class="text-red-400">*</span></label>
+                                                                <input type="number" name="quantity" min="1" max="{{ $freeSeats }}" placeholder="{{ $freeSeats }}" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" required>
+                                                            </div>
+                                                        </div>
+                                                        <button type="submit" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-semibold transition">
+                                                            <i class="fas fa-plus mr-1"></i> Add Category
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        @else
+                                            <p class="text-amber-400 text-xs font-semibold"><i class="fas fa-lock mr-1"></i>Capacity fully allocated. Remove or edit a category to re-allocate seats.</p>
+                                        @endif
+                                    </div>
                                 </div>
                             @endforeach
                         </div>
                     @else
-                        <p class="text-gray-400 text-sm mb-6">No show timings yet.</p>
+                        <p class="text-gray-400 text-sm mb-6">No show timings yet. Add one below to start managing tickets.</p>
                     @endif
 
-                    <!-- Add Timing Form -->
-                    <div class="border-t border-slate-600 pt-5">
-                        <h3 class="text-amber-400 font-semibold mb-3">Add Show Timing</h3>
-                        <form action="{{ route('admin.events.timings.store', $event) }}" method="POST" class="space-y-3">
+                    <div class="border-t border-slate-600 pt-6">
+                        <h3 class="text-amber-400 font-semibold mb-4"><i class="fas fa-plus-circle mr-1"></i>Add Show Timing</h3>
+                        <form action="{{ route('admin.events.timings.store', $event) }}" method="POST" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             @csrf
+                            <div>
+                                <label class="block text-gray-300 text-sm mb-1">Venue <span class="text-red-400">*</span></label>
+                                <select name="venue_id" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" required>
+                                    <option value="">-- Select Venue --</option>
+                                    @foreach($venues as $venue)
+                                        <option value="{{ $venue->id }}">{{ $venue->name }} @if($venue->city) ({{ $venue->city->name }}) @endif @if($venue->organiser) - {{ $venue->organiser->name }} @endif</option>
+                                    @endforeach
+                                </select>
+                                @error('venue_id')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+                            </div>
                             <div>
                                 <label class="block text-gray-300 text-sm mb-1">Date & Time <span class="text-red-400">*</span></label>
-                                <input type="datetime-local" name="show_date_time"
-                                    class="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required>
+                                <input type="datetime-local" name="show_date_time" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" required>
                             </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-gray-300 text-sm mb-1">Duration (minutes) <span class="text-red-400">*</span></label>
-                                    <input type="number" name="duration_minutes" min="1" placeholder="e.g. 120"
-                                        class="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required>
-                                </div>
-                                <div>
-                                    <label class="block text-gray-300 text-sm mb-1">Available Seats <span class="text-red-400">*</span></label>
-                                    <input type="number" name="available_seats" min="1" placeholder="e.g. 200"
-                                        class="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required>
-                                </div>
+                            <div>
+                                <label class="block text-gray-300 text-sm mb-1">Duration (min) <span class="text-red-400">*</span></label>
+                                <input type="number" name="duration_minutes" min="1" placeholder="120" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-gray-300 text-sm mb-1">Available Seats <span class="text-red-400">*</span></label>
+                                <input type="number" name="available_seats" min="1" placeholder="200" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" required>
                             </div>
                             <div>
                                 <label class="block text-gray-300 text-sm mb-1">Notes</label>
-                                <input type="text" name="notes" placeholder="Optional notes"
-                                    class="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
+                                <input type="text" name="notes" placeholder="Optional" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
                             </div>
-                            <button type="submit" class="w-full py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm font-semibold transition mt-2">
-                                <i class="fas fa-plus mr-1"></i> Add Show Timing
-                            </button>
+                            <div class="flex items-end">
+                                <button type="submit" class="w-full py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm font-semibold transition">
+                                    <i class="fas fa-plus mr-1"></i> Add Show Timing
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -353,9 +391,59 @@
     </div>
 </div>
 
+<div id="ticketEditModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm px-4">
+    <div class="min-h-full flex items-center justify-center">
+        <div class="card-luxury rounded-xl w-full max-w-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-white"><i class="fas fa-pen text-amber-400 mr-1"></i>Edit Ticket Category</h3>
+                <button type="button" id="closeTicketEditModal" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="ticketEditForm" method="POST" class="space-y-3">
+                @csrf
+                @method('PUT')
+                <div>
+                    <label class="block text-gray-300 text-xs mb-1">Category Name <span class="text-red-400">*</span></label>
+                    <input type="text" id="modalTicketName" name="name" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" required>
+                </div>
+                <div>
+                    <label class="block text-gray-300 text-xs mb-1">Description</label>
+                    <input type="text" id="modalTicketDescription" name="description" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-gray-300 text-xs mb-1">Type <span class="text-red-400">*</span></label>
+                        <select id="modalTicketType" name="ticket_type" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" required>
+                            <option value="paid">Paid</option>
+                            <option value="free">Free</option>
+                        </select>
+                    </div>
+                    <div id="modalPriceWrap">
+                        <label class="block text-gray-300 text-xs mb-1">Price (₹)</label>
+                        <input type="number" id="modalTicketPrice" name="price" step="0.01" min="0" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-gray-300 text-xs mb-1">Quantity <span class="text-red-400">*</span></label>
+                        <input type="number" id="modalTicketQuantity" name="quantity" min="1" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" required>
+                        <p id="modalQtyHint" class="text-[11px] text-gray-400 mt-1"></p>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" id="cancelTicketEditModal" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-gray-200 rounded-lg text-sm">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-semibold">Update Ticket</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <style>
 .card-luxury {
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.8) 100%);
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.82) 0%, rgba(30, 41, 59, 0.82) 100%);
+    border: 1px solid rgba(148, 113, 113, 0.2);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
 }
 </style>
 
@@ -363,31 +451,28 @@
 function formatTo12Hour(time24) {
     if (!time24) return '--:-- --';
     const [hours, minutes] = time24.split(':');
-    const hour = parseInt(hours);
+    const hour = parseInt(hours, 10);
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const hour12 = hour % 12 || 12;
     return `${String(hour12).padStart(2, '0')}:${minutes} ${ampm}`;
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 12-hr time displays for start/end time
+    document.querySelectorAll('.js-capacity-bar').forEach(function (bar) {
+        bar.style.width = `${bar.dataset.progress}%`;
+    });
+
     const startInput = document.getElementById('startTime');
     const endInput = document.getElementById('endTime');
     const startDisplay = document.getElementById('startTimeDisplay');
     const endDisplay = document.getElementById('endTimeDisplay');
     const allDayCheckbox = document.getElementById('allDayEvent');
-    const startTimeDiv = document.getElementById('startTimeDiv');
     const endTimeDiv = document.getElementById('endTimeDiv');
-    const startTimeRequired = document.getElementById('startTimeRequired');
     const endTimeRequired = document.getElementById('endTimeRequired');
 
- function updateAllDay() {
+    function updateAllDay() {
         const isAllDay = allDayCheckbox.checked;
         if (isAllDay) {
-            startInput.disabled = false;
-            startInput.setAttribute('required', 'required');
-            startTimeDiv.style.opacity = '1';
-            startTimeRequired.classList.remove('hidden');
             endInput.disabled = true;
             endInput.removeAttribute('required');
             endInput.value = '';
@@ -395,43 +480,40 @@ document.addEventListener('DOMContentLoaded', function() {
             endTimeDiv.style.opacity = '0.5';
             endTimeRequired.classList.add('hidden');
         } else {
-            startInput.disabled = false;
-            startInput.setAttribute('required', 'required');
-            startTimeDiv.style.opacity = '1';
-            startTimeRequired.classList.remove('hidden');
             endInput.disabled = false;
             endInput.setAttribute('required', 'required');
+            endDisplay.textContent = formatTo12Hour(endInput.value);
             endTimeDiv.style.opacity = '1';
             endTimeRequired.classList.remove('hidden');
+        }
+    }
+
+    if (allDayCheckbox) {
+        allDayCheckbox.addEventListener('change', updateAllDay);
+        updateAllDay();
+    }
+
+    if (startInput && startDisplay) {
+        startInput.addEventListener('change', function() { startDisplay.textContent = formatTo12Hour(this.value); });
+        startDisplay.textContent = formatTo12Hour(startInput.value);
+    }
+
+    if (endInput && endDisplay) {
+        endInput.addEventListener('change', function() { endDisplay.textContent = formatTo12Hour(this.value); });
+        if (!allDayCheckbox || !allDayCheckbox.checked) {
             endDisplay.textContent = formatTo12Hour(endInput.value);
         }
     }
 
-    allDayCheckbox.addEventListener('change', updateAllDay);
-    updateAllDay();
-
-    if (startInput && startDisplay) {
-        startInput.addEventListener('change', function() {
-            startDisplay.textContent = formatTo12Hour(this.value);
-        });
-        if (!allDayCheckbox.checked) startDisplay.textContent = formatTo12Hour(startInput.value);
-    }
-
-    if (endInput && endDisplay) {
-        endInput.addEventListener('change', function() {
-            endDisplay.textContent = formatTo12Hour(this.value);
-        });
-        if (!allDayCheckbox.checked) endDisplay.textContent = formatTo12Hour(endInput.value);
-    }
-
-    // is_free toggle for base_price
     const radioButtons = document.querySelectorAll('input[name="is_free"]');
     const basePrice = document.getElementById('basePrice');
     const priceRequired = document.getElementById('priceRequired');
     const priceDiv = document.getElementById('priceDiv');
 
     function updatePriceField() {
-        const isFree = document.querySelector('input[name="is_free"]:checked')?.value === '1';
+        const checked = document.querySelector('input[name="is_free"]:checked');
+        if (!checked) return;
+        const isFree = checked.value === '1';
         if (isFree) {
             basePrice.removeAttribute('required');
             basePrice.value = '0';
@@ -446,29 +528,79 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    radioButtons.forEach(rb => rb.addEventListener('change', updatePriceField));
+    radioButtons.forEach(radio => radio.addEventListener('change', updatePriceField));
     updatePriceField();
 
-    // ticket_type toggle for price
-    const ticketType = document.getElementById('ticketType');
-    const ticketPrice = document.getElementById('ticketPrice');
-    const ticketPriceDiv = document.getElementById('ticketPriceDiv');
+    document.querySelectorAll('.js-toggle-ticket-form').forEach(function (button) {
+        button.addEventListener('click', function () {
+            const target = document.getElementById(this.dataset.target);
+            if (!target) return;
+            const isHidden = target.classList.contains('hidden');
+            target.classList.toggle('hidden', !isHidden);
+            const label = this.querySelector('span');
+            if (label) {
+                label.textContent = isHidden ? 'Cancel' : 'Add Ticket Category';
+            }
+        });
+    });
 
-    function updateTicketPrice() {
-        if (ticketType.value === 'free') {
-            ticketPrice.value = '0';
-            ticketPrice.readOnly = true;
-            ticketPrice.removeAttribute('required');
-            ticketPriceDiv.style.opacity = '0.6';
-        } else {
-            ticketPrice.value = '';
-            ticketPrice.readOnly = false;
-            ticketPrice.setAttribute('required', '');
-            ticketPriceDiv.style.opacity = '1';
-        }
+    document.querySelectorAll('.js-ticket-type-select').forEach(function (select) {
+        const sync = function () {
+            const priceWrap = document.getElementById(select.dataset.priceWrap);
+            const priceInput = document.getElementById(select.dataset.priceInput);
+            if (!priceWrap || !priceInput) return;
+            const isFree = select.value === 'free';
+            priceInput.disabled = isFree;
+            priceWrap.style.opacity = isFree ? '0.5' : '1';
+            if (isFree) priceInput.value = '0';
+        };
+        select.addEventListener('change', sync);
+        sync();
+    });
+
+    const modal = document.getElementById('ticketEditModal');
+    const modalForm = document.getElementById('ticketEditForm');
+    const closeModalBtn = document.getElementById('closeTicketEditModal');
+    const cancelModalBtn = document.getElementById('cancelTicketEditModal');
+    const modalType = document.getElementById('modalTicketType');
+    const modalPrice = document.getElementById('modalTicketPrice');
+    const modalPriceWrap = document.getElementById('modalPriceWrap');
+    const modalQty = document.getElementById('modalTicketQuantity');
+    const modalQtyHint = document.getElementById('modalQtyHint');
+
+    function closeModal() {
+        modal.classList.add('hidden');
     }
 
-    ticketType.addEventListener('change', updateTicketPrice);
+    function toggleModalPrice() {
+        const isFree = modalType.value === 'free';
+        modalPrice.disabled = isFree;
+        modalPriceWrap.style.opacity = isFree ? '0.5' : '1';
+        if (isFree) modalPrice.value = '0';
+    }
+
+    document.querySelectorAll('.js-open-ticket-modal').forEach(btn => {
+        btn.addEventListener('click', function() {
+            modalForm.action = this.dataset.action;
+            document.getElementById('modalTicketName').value = this.dataset.name || '';
+            document.getElementById('modalTicketDescription').value = this.dataset.description || '';
+            modalType.value = this.dataset.ticketType || 'paid';
+            modalPrice.value = this.dataset.price || '0';
+            modalQty.value = this.dataset.quantity || '1';
+            modalQty.min = this.dataset.min || '1';
+            modalQty.max = this.dataset.max || '1';
+            modalQtyHint.textContent = `Allowed range: ${modalQty.min} to ${modalQty.max}`;
+            toggleModalPrice();
+            modal.classList.remove('hidden');
+        });
+    });
+
+    modalType.addEventListener('change', toggleModalPrice);
+    closeModalBtn.addEventListener('click', closeModal);
+    cancelModalBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) closeModal();
+    });
 });
 </script>
 @endsection

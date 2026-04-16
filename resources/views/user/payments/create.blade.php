@@ -1,6 +1,24 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $rowLabel = function ($rowNumber) {
+        $label = '';
+        $number = (int) $rowNumber;
+
+        while ($number > 0) {
+            $remainder = ($number - 1) % 26;
+            $label = chr(65 + $remainder) . $label;
+            $number = intdiv($number - 1, 26);
+        }
+
+        return $label ?: 'A';
+    };
+
+    $displayCity = $booking->event->city->name
+        ?? $booking->showTiming->venue->city->name
+        ?? 'N/A';
+@endphp
 <div class="space-y-6">
     <!-- Booking Summary -->
     <div class="rounded-3xl border border-white/10 bg-white/5 text-white shadow-2xl p-6 md:p-8">
@@ -9,9 +27,8 @@
             <div class="rounded-2xl bg-slate-900/60 border border-white/10 p-4">
                 <p class="text-sm text-slate-300">Event</p>
                 <p class="text-xl font-semibold">{{ $booking->event->title }}</p>
-                <p class="text-slate-300 text-sm mt-2">Location: {{ $booking->event->location }}</p>
+                <p class="text-slate-300 text-sm mt-2">Location: {{ $displayCity }}</p>
                 <p class="text-slate-300 text-sm">Quantity: {{ $booking->quantity }}</p>
-                <p class="text-slate-300 text-sm mt-2">Price per ticket: <span class="text-amber-300">₹{{ number_format($booking->event->base_price, 0) }}</span></p>
             </div>
             <div class="rounded-2xl bg-slate-900/60 border border-white/10 p-4 flex flex-col justify-between">
                 <div>
@@ -32,7 +49,7 @@
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
             @foreach($booking->seats as $seat)
             <div class="rounded-xl bg-slate-900/60 border border-cyan-400/30 p-4 text-center">
-                <div class="text-2xl font-bold text-cyan-300 mb-1">Row {{ chr(64 + $seat->row_number) }}</div>
+                <div class="text-2xl font-bold text-cyan-300 mb-1">Row {{ $rowLabel($seat->row_number) }}</div>
                 <div class="text-sm text-slate-300">Seat {{ $seat->column_number }}</div>
                 <div class="text-xs text-cyan-400 mt-1">{{ $seat->seatCategory->name ?? 'Standard' }}</div>
             </div>

@@ -6,6 +6,7 @@ use App\Helpers\PaymentHelper;
 use App\Models\Booking;
 use App\Models\Payment;
 use App\Models\Seat;
+use App\Models\SeatCategory;
 use App\Notifications\BookingConfirmed;
 use App\Notifications\PaymentSuccessful;
 use Illuminate\Http\Request;
@@ -24,7 +25,130 @@ class PaymentController extends Controller
             return redirect()->back()->with('info', 'Payment already processed');
         }
 
+        $booking->loadMissing([
+            'event.city',
+            'showTiming.venue.city',
+            'seats.seatCategory',
+            'showTiming.tickets',
+        ]);
+
+        $this->syncBookingSeatCategories($booking);
+        $booking->load('seats.seatCategory');
+
         return view('user.payments.create', compact('booking'));
+    }
+
+    private function syncBookingSeatCategories(Booking $booking): void
+    {
+        if (!$booking->showTiming || !$booking->showTiming->venue || !$booking->seats || $booking->seats->isEmpty()) {
+            return;
+        }
+
+        $totalSeats = (int) ($booking->showTiming->available_seats ?? 0);
+        if ($totalSeats <= 0) {
+            return;
+        }
+
+        $tickets = $booking->showTiming->tickets()
+            ->where('quantity', '>', 0)
+            ->orderBy('id')
+            ->get();
+
+        if ($tickets->isEmpty()) {
+            return;
+        }
+
+        $ranges = [];
+        $nextSeatNumber = 1;
+        foreach ($tickets as $ticket) {
+            if ($nextSeatNumber > $totalSeats) {
+                break;
+            }
+
+            $allocatable = min((int) $ticket->quantity, $totalSeats - $nextSeatNumber + 1);
+            if ($allocatable <= 0) {
+                continue;
+            }
+
+            $from = $nextSeatNumber;
+            $to = $nextSeatNumber + $allocatable - 1;
+            $ranges[] = [
+                'ticket_id' => $ticket->id,
+                'name' => $ticket->name,
+                'price' => (float) $ticket->price,
+                'from' => $from,
+                'to' => $to,
+                'quantity' => $allocatable,
+            ];
+            $nextSeatNumber = $to + 1;
+        }
+
+        if (empty($ranges)) {
+            return;
+        }
+
+        $fallbackCategory = SeatCategory::firstOrCreate(
+            [
+                'venue_id' => $booking->showTiming->venue->id,
+                'name' => 'General',
+            ],
+            [
+                'total_seats' => max(1, $totalSeats),
+                'base_price' => 0,
+                'color' => '#10B981',
+                'description' => 'Auto-created for show timing seat allocation',
+            ]
+        );
+
+        $ticketCategoryMap = [];
+        foreach ($ranges as $index => $range) {
+            $palette = ['#F59E0B', '#06B6D4', '#8B5CF6', '#EF4444', '#22C55E', '#F97316'];
+            $category = SeatCategory::firstOrCreate(
+                [
+                    'venue_id' => $booking->showTiming->venue->id,
+                    'name' => $range['name'],
+                ],
+                [
+                    'total_seats' => max(1, (int) $range['quantity']),
+                    'base_price' => (float) $range['price'],
+                    'color' => $palette[$index % count($palette)],
+                    'description' => 'Auto-created from ticket category allocation',
+                ]
+            );
+
+            $ticketCategoryMap[$range['ticket_id']] = $category->id;
+        }
+
+        foreach ($booking->seats as $seat) {
+            $seatNumber = (int) preg_replace('/[^0-9]/', '', (string) $seat->seat_number);
+            if ($seatNumber <= 0) {
+                continue;
+            }
+
+            $matchedRange = null;
+            foreach ($ranges as $range) {
+                if ($seatNumber >= $range['from'] && $seatNumber <= $range['to']) {
+                    $matchedRange = $range;
+                    break;
+                }
+            }
+
+            $targetSeatCategoryId = $matchedRange
+                ? ($ticketCategoryMap[$matchedRange['ticket_id']] ?? $fallbackCategory->id)
+                : $fallbackCategory->id;
+
+            $updates = [];
+            if ((int) $seat->seat_category_id !== (int) $targetSeatCategoryId) {
+                $updates['seat_category_id'] = $targetSeatCategoryId;
+            }
+            if ($matchedRange && (float) $seat->current_price !== (float) $matchedRange['price']) {
+                $updates['current_price'] = (float) $matchedRange['price'];
+            }
+
+            if (!empty($updates)) {
+                $seat->update($updates);
+            }
+        }
     }
 
     public function store(Request $request, Booking $booking)

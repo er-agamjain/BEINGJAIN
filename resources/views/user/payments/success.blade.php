@@ -1,6 +1,20 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $rowLabel = function ($rowNumber) {
+        $label = '';
+        $number = (int) $rowNumber;
+
+        while ($number > 0) {
+            $remainder = ($number - 1) % 26;
+            $label = chr(65 + $remainder) . $label;
+            $number = intdiv($number - 1, 26);
+        }
+
+        return $label ?: 'A';
+    };
+@endphp
 <div class="space-y-6">
     <!-- Success Header -->
     <div class="rounded-3xl border border-emerald-400/30 bg-emerald-500/10 text-emerald-100 shadow-2xl p-8 text-center">
@@ -92,7 +106,7 @@
                             <div class="flex flex-wrap gap-2">
                                 @foreach($booking->seats as $seat)
                                     <div class="px-4 py-2 bg-amber-500/20 text-amber-300 rounded-lg text-sm font-semibold border border-amber-400/30">
-                                        <i class="fas fa-chair mr-1"></i>Row {{ chr(64 + $seat->row_number) }}, Seat {{ $seat->column_number }}
+                                        <i class="fas fa-chair mr-1"></i>Row {{ $rowLabel($seat->row_number) }}, Seat {{ $seat->column_number }}
                                     </div>
                                 @endforeach
                             </div>

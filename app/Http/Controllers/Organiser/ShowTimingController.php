@@ -29,7 +29,7 @@ class ShowTimingController extends Controller
         }
 
         //$showTimings = $query->with('event', 'venue')->latest('show_date_time')->paginate(20);
-        $showTimings = $query->with('event', 'venue')->withCount('seats')->latest('show_date_time')->paginate(20);
+            $showTimings = $query->with('event', 'venue')->withCount(['seats', 'tickets'])->latest('show_date_time')->paginate(20);
         
         // Get data for filter dropdowns
         $events = Event::where('organiser_id', auth()->id())->get();
@@ -79,7 +79,8 @@ class ShowTimingController extends Controller
 
         $events = Event::where('organiser_id', auth()->id())->get();
         $venues = Venue::where('organiser_id', auth()->id())->get();
-        return view('organiser.show-timings.edit', compact('showTiming', 'events', 'venues'));
+            $tickets = $showTiming->tickets; // Load tickets relation
+            return view('organiser.show-timings.edit', compact('showTiming', 'events', 'venues', 'tickets'));
     }
 
     public function update(Request $request, ShowTiming $showTiming)

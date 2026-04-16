@@ -36,6 +36,11 @@ class ShowTiming extends Model
         return $this->hasMany(Seat::class);
     }
 
+        public function tickets()
+        {
+            return $this->hasMany(Ticket::class);
+        }
+
     protected static function boot()
     {
         parent::boot();

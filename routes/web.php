@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
@@ -16,6 +17,9 @@ use App\Http\Controllers\Admin\RefundController;
 use App\Http\Controllers\Admin\PlatformSettingController;
 use App\Http\Controllers\Admin\SeatController;
 use App\Http\Controllers\Admin\PaymentVerificationController;
+use App\Http\Controllers\Admin\VenueController as AdminVenueController;
+use App\Http\Controllers\Admin\SeatCategoryController as AdminSeatCategoryController;
+use App\Http\Controllers\Admin\ShowTimingController as AdminShowTimingController;
 use App\Http\Controllers\Organiser\EventController as OrganiserEventController;
 use App\Http\Controllers\Organiser\TicketController as OrganiserTicketController;
 use App\Http\Controllers\Organiser\BookingController as OrganiserBookingController;
@@ -41,24 +45,28 @@ Route::get('/privacy', [PageController::class, 'privacy'])->name('privacy');
 
 // Debug route to check current user
 Route::get('/debug-user', function () {
-    if (auth()->check()) {
-        $user = auth()->user();
-        $user->load('role');
-        return response()->json([
-            'authenticated' => true,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role_id' => $user->role_id,
-                'role_name' => $user->role?->name,
-            ],
-            'isAdmin' => $user->isAdmin(),
-            'isOrganiser' => $user->isOrganiser(),
-            'isUser' => $user->isUser(),
-        ]);
+    /** @var \App\Models\User|null $user */
+    $user = Auth::user();
+
+    if (!$user) {
+        return response()->json(['authenticated' => false]);
     }
-    return response()->json(['authenticated' => false]);
+
+    $user->load('role');
+
+    return response()->json([
+        'authenticated' => true,
+        'user' => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role_id' => $user->role_id,
+            'role_name' => $user->role?->name,
+        ],
+        'isAdmin' => $user->isAdmin(),
+        'isOrganiser' => $user->isOrganiser(),
+        'isUser' => $user->isUser(),
+    ]);
 })->middleware('auth');
 
 // Auth Routes
@@ -147,6 +155,11 @@ Route::middleware(['auth', 'role:Organiser', 'ensure_organiser_active'])->prefix
     Route::put('/tickets/{ticket}', [OrganiserTicketController::class, 'update'])->name('tickets.update');
     Route::delete('/tickets/{ticket}', [OrganiserTicketController::class, 'destroy'])->name('tickets.destroy');
 
+        // Show-timing scoped tickets
+        Route::post('/show-timings/{showTiming}/tickets', [OrganiserTicketController::class, 'storeForTiming'])->name('show-timings.tickets.store');
+        Route::put('/show-timings/{showTiming}/tickets/{ticket}', [OrganiserTicketController::class, 'updateForTiming'])->name('show-timings.tickets.update');
+        Route::delete('/show-timings/{showTiming}/tickets/{ticket}', [OrganiserTicketController::class, 'destroyForTiming'])->name('show-timings.tickets.destroy');
+
     // Bookings
     Route::get('/bookings', [OrganiserBookingController::class, 'index'])->name('bookings.index');
     Route::get('/bookings/history', [OrganiserBookingController::class, 'history'])->name('bookings.history');
@@ -186,6 +199,21 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->grou
     Route::delete('/cities/{city}', [CityController::class, 'destroy'])->name('cities.destroy');
     Route::post('/cities/{city}/toggle', [CityController::class, 'toggleActive'])->name('cities.toggle');
 
+    // Venues
+    Route::get('/venues', [AdminVenueController::class, 'index'])->name('venues.index');
+    Route::get('/venues/create', [AdminVenueController::class, 'create'])->name('venues.create');
+    Route::get('/search-cities', [AdminVenueController::class, 'searchCities'])->name('search-cities');
+    Route::post('/venues', [AdminVenueController::class, 'store'])->name('venues.store');
+    Route::get('/venues/{venue}/edit', [AdminVenueController::class, 'edit'])->name('venues.edit');
+    Route::put('/venues/{venue}', [AdminVenueController::class, 'update'])->name('venues.update');
+    Route::delete('/venues/{venue}', [AdminVenueController::class, 'destroy'])->name('venues.destroy');
+
+    // Venue Seat Categories
+    Route::get('/venues/{venue}/seat-categories', [AdminSeatCategoryController::class, 'index'])->name('seat-categories.index');
+    Route::post('/venues/{venue}/seat-categories', [AdminSeatCategoryController::class, 'store'])->name('seat-categories.store');
+    Route::put('/venues/{venue}/seat-categories/{seatCategory}', [AdminSeatCategoryController::class, 'update'])->name('seat-categories.update');
+    Route::delete('/venues/{venue}/seat-categories/{seatCategory}', [AdminSeatCategoryController::class, 'destroy'])->name('seat-categories.destroy');
+
     // Refunds
     Route::get('/refunds', [RefundController::class, 'index'])->name('refunds.index');
     Route::get('/refunds/{refund}', [RefundController::class, 'show'])->name('refunds.show');
@@ -216,6 +244,11 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->grou
     // Show timings
     Route::post('/events/{event}/timings', [\App\Http\Controllers\Admin\EventController::class, 'storeTiming'])->name('events.timings.store');
     Route::delete('/timings/{timing}', [\App\Http\Controllers\Admin\EventController::class, 'destroyTiming'])->name('events.timings.destroy');
+    Route::get('/show-timings/{showTiming}/edit', [AdminShowTimingController::class, 'edit'])->name('show-timings.edit');
+    Route::put('/show-timings/{showTiming}', [AdminShowTimingController::class, 'update'])->name('show-timings.update');
+    Route::post('/show-timings/{showTiming}/tickets', [AdminShowTimingController::class, 'storeTicket'])->name('show-timings.tickets.store');
+    Route::put('/show-timings/{showTiming}/tickets/{ticket}', [AdminShowTimingController::class, 'updateTicket'])->name('show-timings.tickets.update');
+    Route::delete('/show-timings/{showTiming}/tickets/{ticket}', [AdminShowTimingController::class, 'destroyTicket'])->name('show-timings.tickets.destroy');
 
     // Event approve/reject/delete routes (using EventController)
     Route::put('/events/{event}/approve', [\App\Http\Controllers\Admin\EventController::class, 'approve'])->name('events.approve');

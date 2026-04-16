@@ -13,6 +13,7 @@ class Ticket extends Model
 
     protected $fillable = [
         'event_id',
+        'show_timing_id',
         'name',
         'description',
         'price',
@@ -28,6 +29,11 @@ class Ticket extends Model
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
+    }
+
+    public function showTiming(): BelongsTo
+    {
+        return $this->belongsTo(ShowTiming::class);
     }
 
     public function bookings(): HasMany

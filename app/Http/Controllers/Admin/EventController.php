@@ -10,6 +10,7 @@ use App\Models\EventTag;
 use App\Models\ShowTiming;
 use App\Models\Ticket;
 use App\Models\City;
+use App\Models\Venue;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -88,21 +89,21 @@ class EventController extends Controller
     
     public function show(Event $event)
     {
-        $event->load(['organiser', 'eventCategory', 'tickets', 'showTimings', 'city']);
+        $event->load(['organiser', 'eventCategory', 'showTimings.venue', 'showTimings.tickets', 'city']);
         return view('admin.events.show', compact('event'));
     }
 
     public function edit(Event $event)
     {
-        $event->load(['tickets', 'showTimings']);
+        $event->load(['organiser', 'showTimings.tickets', 'showTimings.venue', 'city']);
         $categories = EventCategory::where('is_active', true)->pluck('category_name', 'id');
         $communities = EventCommunity::where('is_active', true)->pluck('name');
         $gacchhs = EventGacchh::where('is_active', true)->pluck('name');
         $tagsList = EventTag::where('is_active', true)->pluck('name');
         $cities = City::where('is_active', true)->orderBy('name')->pluck('name', 'id');
+        $venues = Venue::with(['city', 'organiser'])->orderBy('name')->get();
 
-        //return view('admin.events.edit', compact('event', 'categories', 'communities', 'gacchhs', 'tagsList'));
-        return view('admin.events.edit', compact('event', 'categories', 'communities', 'gacchhs', 'tagsList', 'cities'));
+        return view('admin.events.edit', compact('event', 'categories', 'communities', 'gacchhs', 'tagsList', 'cities', 'venues'));
     }
 
     public function update(Request $request, Event $event)
@@ -182,6 +183,7 @@ class EventController extends Controller
     public function storeTiming(Request $request, Event $event)
     {
         $validated = $request->validate([
+            'venue_id' => 'required|exists:venues,id',
             'show_date_time' => 'required|date',
             'duration_minutes' => 'required|integer|min:1',
             'available_seats' => 'required|integer|min:1',
