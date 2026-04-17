@@ -135,6 +135,9 @@
                     <a href="{{ route('admin.bookings.index') }}" class="block px-6 py-4 bg-gradient-to-r from-rose-500/20 to-rose-600/20 text-rose-300 rounded-xl text-center hover:from-rose-500/40 hover:to-rose-600/40 transition-all border border-rose-500/30 font-semibold group">
                         <i class="fas fa-ticket-alt group-hover:scale-110 transition-transform"></i> View Bookings
                     </a>
+                    <a href="{{ route('admin.payments.pending') }}" class="block px-6 py-4 bg-gradient-to-r from-amber-500/20 to-yellow-600/20 text-amber-300 rounded-xl text-center hover:from-amber-500/40 hover:to-yellow-600/40 transition-all border border-amber-500/30 font-semibold group">
+                        <i class="fas fa-wallet group-hover:scale-110 transition-transform"></i> View Payments
+                    </a>
                 </div>
             </div>
         </div>

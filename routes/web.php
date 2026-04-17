@@ -191,6 +191,7 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/payments/pending', [PaymentVerificationController::class, 'index'])->name('payments.pending');
     Route::patch('/payments/{payment}/approve', [PaymentVerificationController::class, 'approve'])->name('payments.approve');
     Route::patch('/payments/{payment}/reject', [PaymentVerificationController::class, 'reject'])->name('payments.reject');
+    Route::patch('/payments/{payment}/not-received', [PaymentVerificationController::class, 'markNotReceived'])->name('payments.not-received');
 
     // Cities
     Route::get('/cities', [CityController::class, 'index'])->name('cities.index');
