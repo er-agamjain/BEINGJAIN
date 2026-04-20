@@ -43,17 +43,6 @@ class EventController extends Controller
 
     public function store(Request $request)
     {
-         // Temporarily store uploaded image before validation so it survives a redirect back
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $filename = \Illuminate\Support\Str::random(40) . '.' . $file->getClientOriginalExtension();
-            $dir = public_path('storage/tmp/events');
-            if (!is_dir($dir)) { mkdir($dir, 0755, true); }
-            $file->move($dir, $filename);
-            $request->merge(['temp_image' => 'tmp/events/' . $filename]);
-        }
-
-        
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -72,25 +61,17 @@ class EventController extends Controller
             'gacchh' => 'nullable|string|max:255',
             'tags' => 'nullable|string|max:255',
             'image' => 'nullable|image|max:2048',
-            'temp_image' => 'nullable|string',
         ]);
 
         $validated['organiser_id'] = Auth::id();
         $validated['status'] = 'published'; // Admin events auto-published
-        //$validated['status'] = 'approved'; // Admin events auto-approved
-        unset($validated['temp_image']);
         $event = Event::create($validated);
 
-        // Move temp image to permanent location (covers both first-try and retry cases)
-        if ($request->filled('temp_image')) {
-            $oldFile = public_path('storage/' . $request->temp_image);
-            $newFilename = basename($request->temp_image);
-            $newDir = public_path('storage/events');
-            if (!is_dir($newDir)) { mkdir($newDir, 0755, true); }
-            if (file_exists($oldFile)) {
-                rename($oldFile, $newDir . '/' . $newFilename);
-            }
-            $event->update(['image' => 'events/' . $newFilename]);
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $filename = \Illuminate\Support\Str::random(40) . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('storage/events'), $filename);
+            $event->update(['image' => 'events/' . $filename]);
         }
 
         return redirect()->route('admin.events.index')->with('success', 'Event created successfully! No commission will be applied.');
