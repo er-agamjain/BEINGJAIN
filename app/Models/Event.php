@@ -76,4 +76,13 @@ class Event extends Model
     {
         return $this->hasManyThrough(Venue::class, ShowTiming::class, 'event_id', 'id', 'id', 'venue_id');
     }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        if (!$this->image) {
+            return null;
+        }
+
+        return asset('storage/' . $this->image);
+    }
 }

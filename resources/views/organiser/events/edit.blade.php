@@ -165,7 +165,7 @@
                             <label class="block text-amber-400 font-bold mb-2">Event Image</label>
                             @if($event->image)
                                 <div class="mb-3">
-                                    <img src="{{ asset('storage/' . $event->image) }}" alt="Current image" class="h-32 w-32 object-cover rounded-lg border border-slate-600">
+                                    <img src="{{ $event->image_url }}" alt="Current image" class="h-32 w-32 object-cover rounded-lg border border-slate-600">
                                     <p class="text-gray-400 text-xs mt-1">Current image - upload a new one to replace</p>
                                 </div>
                             @endif

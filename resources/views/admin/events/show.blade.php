@@ -35,7 +35,7 @@
                 <!-- Event Image -->
                 @if($event->image)
                     <div class="card-luxury rounded-lg overflow-hidden">
-                        <img src="{{ asset('storage/' . $event->image) }}" alt="{{ $event->title }}" class="w-full h-64 object-cover">
+                        <img src="{{ $event->image_url }}" alt="{{ $event->title }}" class="w-full h-64 object-cover">
                     </div>
                 @else
                     <div class="card-luxury rounded-lg h-64 flex items-center justify-center">

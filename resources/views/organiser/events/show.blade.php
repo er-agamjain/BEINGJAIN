@@ -23,7 +23,7 @@
                 <!-- Event Image -->
                 @if($event->image)
                     <div class="mb-6 rounded-lg overflow-hidden bg-gray-200">
-                        <img src="{{ Storage::url($event->image) }}" alt="{{ $event->title }}" class="w-full h-96 object-cover">
+                        <img src="{{ $event->image_url }}" alt="{{ $event->title }}" class="w-full h-96 object-cover">
                     </div>
                 @else
                     <div class="mb-6 rounded-lg bg-gray-200 h-96 flex items-center justify-center">

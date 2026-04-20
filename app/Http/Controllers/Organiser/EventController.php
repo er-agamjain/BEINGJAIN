@@ -68,8 +68,10 @@ class EventController extends Controller
         $event = Event::create($validated);
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('events', 'public');
-            $event->update(['image' => $path]);
+            $file = $request->file('image');
+            $filename = \Illuminate\Support\Str::random(40) . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('storage/events'), $filename);
+            $event->update(['image' => 'events/' . $filename]);
         }
 
         return redirect()->route('organiser.events.show', $event)->with('success', 'Event created');
@@ -129,7 +131,10 @@ class EventController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('events', 'public');
+            $file = $request->file('image');
+            $filename = \Illuminate\Support\Str::random(40) . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('storage/events'), $filename);
+            $validated['image'] = 'events/' . $filename;
         }
 
         $event->update($validated);

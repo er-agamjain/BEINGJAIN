@@ -38,7 +38,7 @@
     @forelse($events as $event)
         <div class="bg-white rounded-lg shadow p-6 event-card group" data-status="{{ $event->status }}">
             @if($event->image)
-                <img src="{{ asset('storage/' . $event->image) }}" alt="{{ $event->title }}" class="w-full h-52 object-cover rounded-xl mb-4 group-hover:opacity-90 transition-opacity">
+                <img src="{{ $event->image_url }}" alt="{{ $event->title }}" class="w-full h-52 object-cover rounded-xl mb-4 group-hover:opacity-90 transition-opacity">
             @else
                 <div class="w-full h-52 bg-purple-100 rounded-xl mb-4 flex items-center justify-center border border-purple-300">
                     <i class="fas fa-calendar-alt text-amber-400 text-6xl"></i>

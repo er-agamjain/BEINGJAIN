@@ -67,7 +67,7 @@
         <div class="group rounded-2xl border border-white/10 bg-white/5 text-white shadow-xl hover:-translate-y-1 transition">
             <div class="relative">
                 @if($event->image)
-                    <img src="{{ asset('storage/' . $event->image) }}" alt="{{ $event->name }}" class="w-full h-52 object-cover rounded-t-2xl">
+                    <img src="{{ $event->image_url }}" alt="{{ $event->name }}" class="w-full h-52 object-cover rounded-t-2xl">
                 @else
                     <div class="w-full h-52 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-t-2xl flex items-center justify-center">
                         <i class="fas fa-calendar-alt text-white text-5xl"></i>

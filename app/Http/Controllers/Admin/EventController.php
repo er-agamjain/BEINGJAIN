@@ -45,8 +45,12 @@ class EventController extends Controller
     {
          // Temporarily store uploaded image before validation so it survives a redirect back
         if ($request->hasFile('image')) {
-            $tempPath = $request->file('image')->store('tmp/events', 'public');
-            $request->merge(['temp_image' => $tempPath]);
+            $file = $request->file('image');
+            $filename = \Illuminate\Support\Str::random(40) . '.' . $file->getClientOriginalExtension();
+            $dir = public_path('storage/tmp/events');
+            if (!is_dir($dir)) { mkdir($dir, 0755, true); }
+            $file->move($dir, $filename);
+            $request->merge(['temp_image' => 'tmp/events/' . $filename]);
         }
 
         
@@ -79,9 +83,14 @@ class EventController extends Controller
 
         // Move temp image to permanent location (covers both first-try and retry cases)
         if ($request->filled('temp_image')) {
-            $newPath = 'events/' . basename($request->temp_image);
-            \Illuminate\Support\Facades\Storage::disk('public')->move($request->temp_image, $newPath);
-            $event->update(['image' => $newPath]);
+            $oldFile = public_path('storage/' . $request->temp_image);
+            $newFilename = basename($request->temp_image);
+            $newDir = public_path('storage/events');
+            if (!is_dir($newDir)) { mkdir($newDir, 0755, true); }
+            if (file_exists($oldFile)) {
+                rename($oldFile, $newDir . '/' . $newFilename);
+            }
+            $event->update(['image' => 'events/' . $newFilename]);
         }
 
         return redirect()->route('admin.events.index')->with('success', 'Event created successfully! No commission will be applied.');
@@ -129,8 +138,10 @@ class EventController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('events', 'public');
-            $validated['image'] = $path;
+            $file = $request->file('image');
+            $filename = \Illuminate\Support\Str::random(40) . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('storage/events'), $filename);
+            $validated['image'] = 'events/' . $filename;
         }
 
         $event->update($validated);

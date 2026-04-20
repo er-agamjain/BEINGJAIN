@@ -39,7 +39,7 @@
                     @if($event->image)
                         <div class="relative h-72 rounded-2xl overflow-hidden">
                             <div class="absolute inset-0 bg-gradient-to-b from-transparent via-slate-900/10 to-slate-900/50"></div>
-                            <img src="{{ asset('storage/' . $event->image) }}" alt="{{ $event->name }}" class="w-full h-full object-cover">
+                            <img src="{{ $event->image_url }}" alt="{{ $event->name }}" class="w-full h-full object-cover">
                             <div class="absolute bottom-3 left-3 text-white">
                                 <p class="text-sm">{{ $event->city?->name ?? $event->location ?? '' }}</p>
                                 <p class="font-semibold">{{ $event->event_date->format('M d') }} · {{ \Carbon\Carbon::parse($event->event_time)->format('h:i A') }}</p>
