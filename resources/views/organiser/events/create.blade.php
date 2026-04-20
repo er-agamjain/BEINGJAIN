@@ -60,16 +60,6 @@
                 </div>
 
                 <div class="pb-6 border-b border-slate-700">
-                    <div>
-                        <label class="block text-amber-400 font-bold mb-2">City</label>
-                        <select name="city_id" class="w-full px-4 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
-                            <option value="">Select City</option>
-                            @foreach($cities as $id => $name)
-                                <option value="{{ $id }}" {{ old('city_id') == $id ? 'selected' : '' }}>{{ $name }}</option>
-                            @endforeach
-                        </select>
-                        @error('city_id') <span class="text-red-400 text-sm">{{ $message }}</span> @enderror
-                    </div>
                     <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
                         <i class="fas fa-tag text-amber-400"></i> Categorization
                     </h2>
