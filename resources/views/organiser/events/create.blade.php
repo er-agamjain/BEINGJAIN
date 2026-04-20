@@ -201,7 +201,7 @@
                     <div class="space-y-5">
                         @if(old('temp_image'))
                             <div class="flex items-center gap-4 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
-                                <img src="{{ asset('storage/' . old('temp_image')) }}" alt="Selected image" class="h-24 w-24 object-cover rounded-lg border border-emerald-500/50">
+                                <img src="{{ asset('public/storage/' . old('temp_image')) }}" alt="Selected image" class="h-24 w-24 object-cover rounded-lg border border-emerald-500/50">
                                 <div>
                                     <p class="text-emerald-400 text-sm font-semibold flex items-center gap-2"><i class="fas fa-check-circle"></i>Image Already Selected</p>
                                     <p class="text-gray-400 text-xs mt-1">Upload a new one below to replace it, or leave blank to keep this one.</p>

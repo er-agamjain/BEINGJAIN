@@ -83,6 +83,6 @@ class Event extends Model
             return null;
         }
 
-        return asset('storage/' . $this->image);
+        return asset('public/storage/' . $this->image);
     }
 }
