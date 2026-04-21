@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Mail\BookingConfirmation;
 use App\Models\Booking;
 use App\Models\Event;
 use App\Models\Seat;
@@ -11,6 +12,7 @@ use App\Notifications\BookingConfirmed;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class BookingController extends Controller
 {
@@ -247,6 +249,10 @@ class BookingController extends Controller
         $seats->each(function($seat) {
             $seat->update(['status' => 'reserved']);
         });
+
+        // Send booking confirmation email
+        $booking->loadMissing(['event', 'user', 'seats', 'showTiming']);
+        Mail::to($booking->user->email)->send(new BookingConfirmation($booking));
 
         // Redirect to payment for tickets
         return redirect()->route('user.payments.create', $booking)->with('success', 'Seats reserved! Proceed to payment.');

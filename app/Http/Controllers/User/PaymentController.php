@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Helpers\PaymentHelper;
+use App\Mail\PaymentStatusMail;
 use App\Models\Booking;
 use App\Models\Payment;
 use App\Models\Seat;
@@ -12,6 +13,7 @@ use App\Notifications\PaymentSuccessful;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 
 class PaymentController extends Controller
 {
@@ -332,9 +334,9 @@ class PaymentController extends Controller
 
         $booking->seats()->update(['status' => 'booked']);
 
+        // Send payment confirmed email
         $user = $booking->user;
-        $user->notify(new BookingConfirmed($booking));
-        $user->notify(new PaymentSuccessful($booking, $payment));
+        Mail::to($user->email)->send(new PaymentStatusMail($booking, $payment, 'confirmed'));
 
         return response()->json([
             'success' => true,

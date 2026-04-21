@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\PaymentStatusMail;
 use App\Models\Payment;
 use App\Models\Booking;
 use App\Notifications\BookingConfirmed;
@@ -10,6 +11,7 @@ use App\Notifications\PaymentSuccessful;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use App\Models\Event;
 use App\Models\User;
 
@@ -122,10 +124,9 @@ class PaymentVerificationController extends Controller
         // Mark seats as booked
         $booking->seats()->update(['status' => 'booked']);
 
-        // Send notifications
+        // Send payment confirmed email to user
         $user = $booking->user;
-        $user->notify(new BookingConfirmed($booking));
-        $user->notify(new PaymentSuccessful($booking, $payment));
+        Mail::to($user->email)->send(new PaymentStatusMail($booking, $payment, 'confirmed'));
 
         return redirect()->back()->with('success', 'Payment verified and booking confirmed! User has been notified.');
     }
@@ -155,8 +156,9 @@ class PaymentVerificationController extends Controller
         // Release seats
         $booking->seats()->update(['status' => 'available']);
 
-        // You could send a notification to user about rejection here
-        // $user->notify(new PaymentRejected($booking, $payment, $request->reason));
+        // Send payment rejected email to user
+        $user = $booking->user;
+        Mail::to($user->email)->send(new PaymentStatusMail($booking, $payment, 'rejected', $request->reason));
 
         return redirect()->back()->with('success', 'Payment rejected and booking cancelled.');
     }
@@ -180,6 +182,10 @@ class PaymentVerificationController extends Controller
 
         // Keep seats reserved while payment is unresolved.
         $booking->seats()->update(['status' => 'reserved']);
+
+        // Send payment not received email to user
+        $user = $booking->user;
+        Mail::to($user->email)->send(new PaymentStatusMail($booking, $payment, 'not_received'));
 
         return redirect()->back()->with('success', 'Payment marked as not received.');
     }

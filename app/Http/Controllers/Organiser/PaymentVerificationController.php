@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Organiser;
 
 use App\Http\Controllers\Controller;
+use App\Mail\PaymentStatusMail;
 use App\Models\Payment;
 use App\Models\Booking;
 use App\Notifications\BookingConfirmed;
 use App\Notifications\PaymentSuccessful;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class PaymentVerificationController extends Controller
@@ -79,10 +81,9 @@ class PaymentVerificationController extends Controller
         // Mark seats as booked
         $booking->seats()->update(['status' => 'booked']);
 
-        // Send notifications to user
+        // Send payment confirmed email to user
         $user = $booking->user;
-        $user->notify(new BookingConfirmed($booking));
-        $user->notify(new PaymentSuccessful($booking, $payment));
+        Mail::to($user->email)->send(new PaymentStatusMail($booking, $payment, 'confirmed'));
 
         return redirect()->back()->with('success', 'Payment confirmed! User has been notified.');
     }
@@ -119,6 +120,10 @@ class PaymentVerificationController extends Controller
         // Release seats
         $booking->seats()->update(['status' => 'available']);
 
+        // Send payment rejected email to user
+        $user = $booking->user;
+        Mail::to($user->email)->send(new PaymentStatusMail($booking, $payment, 'rejected', $request->reason));
+
         return redirect()->back()->with('success', 'Payment rejected and booking cancelled.');
     }
 
@@ -134,6 +139,11 @@ class PaymentVerificationController extends Controller
         $payment->update([
             'notes' => 'Marked as not received by organizer - ' . now()->format('M d, Y h:i A')
         ]);
+
+        // Send payment not received email to user
+        $booking = $payment->booking;
+        $user = $booking->user;
+        Mail::to($user->email)->send(new PaymentStatusMail($booking, $payment, 'not_received'));
 
         return redirect()->back()->with('success', 'Payment marked as not received yet.');
     }
@@ -167,10 +177,9 @@ class PaymentVerificationController extends Controller
             $booking->update(['payment_status' => 'paid', 'status' => 'confirmed']);
             $booking->seats()->update(['status' => 'booked']);
             
-            // Notifications
+            // Send payment confirmed email
             $user = $booking->user;
-            $user->notify(new BookingConfirmed($booking));
-            $user->notify(new PaymentSuccessful($booking, $payment));
+            Mail::to($user->email)->send(new PaymentStatusMail($booking, $payment, 'confirmed'));
             
             return redirect()->back()->with('success', 'Payment confirmed!');
         } 
@@ -180,12 +189,22 @@ class PaymentVerificationController extends Controller
             $booking = $payment->booking;
             $booking->update(['payment_status' => 'failed', 'status' => 'cancelled']);
             $booking->seats()->update(['status' => 'available']);
+
+            // Send payment rejected email
+            $user = $booking->user;
+            Mail::to($user->email)->send(new PaymentStatusMail($booking, $payment, 'rejected', $request->notes));
             
             return redirect()->back()->with('success', 'Payment rejected!');
         }
         elseif ($newStatus === 'pending') {
             // Mark as pending/not received
             $payment->update(['status' => 'pending', 'notes' => $request->notes]);
+
+            // Send payment not received email
+            $booking = $payment->booking;
+            $user = $booking->user;
+            Mail::to($user->email)->send(new PaymentStatusMail($booking, $payment, 'not_received'));
+
             return redirect()->back()->with('success', 'Payment status updated to pending.');
         }
 
